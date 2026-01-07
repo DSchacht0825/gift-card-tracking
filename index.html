@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gift Card Distribution - Data Entry</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <nav>
+            <a href="index.html" class="active">Data Entry</a>
+            <a href="admin.html">Admin Dashboard</a>
+        </nav>
+
+        <h1>Gift Card Distribution</h1>
+        <p class="subtitle">Record gift card distributions for grant outreach</p>
+
+        <div id="message" class="message"></div>
+
+        <h2>Current Inventory</h2>
+        <div id="inventory" class="inventory-grid">
+            <div class="loading">Loading inventory...</div>
+        </div>
+
+        <h2>Record Distribution</h2>
+        <form id="entryForm">
+            <div class="form-group">
+                <label for="recipientName">Recipient Name *</label>
+                <input type="text" id="recipientName" name="recipientName" required
+                       placeholder="Enter recipient's full name">
+            </div>
+
+            <div class="form-group">
+                <label for="recipientUid">Recipient UID *</label>
+                <input type="text" id="recipientUid" name="recipientUid" required
+                       placeholder="Enter unique identifier">
+            </div>
+
+            <div class="form-group">
+                <label for="cardType">Gift Card Type *</label>
+                <select id="cardType" name="cardType" required>
+                    <option value="">Select a card type...</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="quantity">Quantity *</label>
+                <input type="number" id="quantity" name="quantity" min="1" value="1" required>
+            </div>
+
+            <div class="form-group">
+                <label for="distributedAt">Date *</label>
+                <input type="date" id="distributedAt" name="distributedAt" required>
+            </div>
+
+            <div class="form-group">
+                <label for="notes">Notes (optional)</label>
+                <textarea id="notes" name="notes" placeholder="Any additional notes..."></textarea>
+            </div>
+
+            <button type="submit" id="submitBtn">Record Distribution</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/config.js"></script>
+    <script src="js/entry.js"></script>
+</body>
+</html>
