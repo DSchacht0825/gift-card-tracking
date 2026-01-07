@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Load card types for filter dropdown
 async function loadCardTypes() {
     try {
-        const { data, error } = await supabase
+        const { data, error } = await db
             .from('card_types')
             .select('*')
             .order('name');
@@ -37,7 +37,7 @@ async function loadCardTypes() {
 // Load and display inventory
 async function loadInventory() {
     try {
-        const { data, error } = await supabase
+        const { data, error } = await db
             .from('inventory_summary')
             .select('*')
             .order('name');
@@ -77,7 +77,7 @@ async function loadInventory() {
 // Load distributions
 async function loadDistributions(filters = {}) {
     try {
-        let query = supabase
+        let query = db
             .from('distributions')
             .select(`
                 *,
@@ -171,7 +171,7 @@ async function deleteDistribution(id) {
     }
 
     try {
-        const { error } = await supabase
+        const { error } = await db
             .from('distributions')
             .delete()
             .eq('id', id);

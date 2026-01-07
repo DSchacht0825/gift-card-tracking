@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 // Load card types for dropdown
 async function loadCardTypes() {
     try {
-        const { data, error } = await supabase
+        const { data, error } = await db
             .from('card_types')
             .select('*')
             .order('name');
@@ -43,7 +43,7 @@ async function loadCardTypes() {
 // Load and display inventory
 async function loadInventory() {
     try {
-        const { data, error } = await supabase
+        const { data, error } = await db
             .from('inventory_summary')
             .select('*')
             .order('name');
@@ -99,7 +99,7 @@ async function handleSubmit(e) {
 
     try {
         // Check if there's enough inventory
-        const { data: inventory, error: invError } = await supabase
+        const { data: inventory, error: invError } = await db
             .from('inventory_summary')
             .select('*')
             .eq('id', formData.card_type_id)
@@ -112,7 +112,7 @@ async function handleSubmit(e) {
         }
 
         // Insert the distribution record
-        const { error } = await supabase
+        const { error } = await db
             .from('distributions')
             .insert([formData]);
 
