@@ -51,6 +51,13 @@ async function loadInventory() {
             return;
         }
 
+        // Calculate totals
+        const totalInitialValue = data.reduce((sum, c) => sum + Number(c.initial_value || 0), 0);
+        const totalDistributedValue = data.reduce((sum, c) => sum + Number(c.distributed_value || 0), 0);
+        const totalRemainingValue = data.reduce((sum, c) => sum + Number(c.remaining_value || 0), 0);
+        const totalDistributed = data.reduce((sum, c) => sum + Number(c.distributed || 0), 0);
+        const totalRemaining = data.reduce((sum, c) => sum + Number(c.remaining || 0), 0);
+
         inventoryDiv.innerHTML = data.map(card => {
             let statusClass = '';
             if (card.remaining <= 0) {
@@ -63,10 +70,18 @@ async function loadInventory() {
                 <div class="inventory-card ${statusClass}">
                     <h3>${escapeHtml(card.name)}</h3>
                     <div class="count">${card.remaining}</div>
-                    <div class="details">${card.distributed} distributed / ${card.initial_count} total</div>
+                    <div class="details">${card.distributed} given / ${card.initial_count} total @ $${Number(card.card_value).toFixed(2)}</div>
+                    <div class="value">$${Number(card.distributed_value || 0).toFixed(2)} distributed</div>
                 </div>
             `;
-        }).join('');
+        }).join('') + `
+            <div class="inventory-card total">
+                <h3>TOTAL</h3>
+                <div class="count">$${totalDistributedValue.toFixed(2)}</div>
+                <div class="details">${totalDistributed} cards given out</div>
+                <div class="value">$${totalRemainingValue.toFixed(2)} / $${totalInitialValue.toFixed(2)} remaining</div>
+            </div>
+        `;
     } catch (error) {
         document.getElementById('inventory').innerHTML =
             '<p class="error">Error loading inventory</p>';
@@ -81,7 +96,7 @@ async function loadDistributions(filters = {}) {
             .from('distributions')
             .select(`
                 *,
-                card_types (name)
+                card_types (name, card_value)
             `)
             .order('distributed_at', { ascending: false })
             .order('created_at', { ascending: false });
@@ -116,27 +131,36 @@ function renderDistributions(distributions) {
     const countEl = document.getElementById('recordCount');
 
     if (distributions.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7">No distributions found.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8">No distributions found.</td></tr>';
         countEl.textContent = '0 records';
         return;
     }
 
-    tbody.innerHTML = distributions.map(d => `
-        <tr data-id="${d.id}">
-            <td>${formatDate(d.distributed_at)}</td>
-            <td>${escapeHtml(d.recipient_name)}</td>
-            <td>${escapeHtml(d.recipient_uid)}</td>
-            <td>${escapeHtml(d.card_types?.name || 'Unknown')}</td>
-            <td>${d.quantity}</td>
-            <td>${escapeHtml(d.notes || '-')}</td>
-            <td>
-                <button onclick="deleteDistribution(${d.id})" class="btn-small danger">Delete</button>
-            </td>
-        </tr>
-    `).join('');
+    tbody.innerHTML = distributions.map(d => {
+        const cardValue = Number(d.card_types?.card_value || 0);
+        const totalValue = cardValue * d.quantity;
+        return `
+            <tr data-id="${d.id}">
+                <td>${formatDate(d.distributed_at)}</td>
+                <td>${escapeHtml(d.recipient_name)}</td>
+                <td>${escapeHtml(d.recipient_uid)}</td>
+                <td>${escapeHtml(d.card_types?.name || 'Unknown')}</td>
+                <td>${d.quantity}</td>
+                <td>$${totalValue.toFixed(2)}</td>
+                <td>${escapeHtml(d.notes || '-')}</td>
+                <td>
+                    <button onclick="deleteDistribution(${d.id})" class="btn-small danger">Delete</button>
+                </td>
+            </tr>
+        `;
+    }).join('');
 
     const totalQty = distributions.reduce((sum, d) => sum + d.quantity, 0);
-    countEl.textContent = `${distributions.length} records (${totalQty} cards distributed)`;
+    const totalValue = distributions.reduce((sum, d) => {
+        const cardValue = Number(d.card_types?.card_value || 0);
+        return sum + (cardValue * d.quantity);
+    }, 0);
+    countEl.textContent = `${distributions.length} records | ${totalQty} cards | $${totalValue.toFixed(2)} distributed`;
 }
 
 // Apply filters
@@ -193,15 +217,21 @@ function exportCSV() {
         return;
     }
 
-    const headers = ['Date', 'Name', 'UID', 'Card Type', 'Quantity', 'Notes'];
-    const rows = allDistributions.map(d => [
-        d.distributed_at,
-        `"${(d.recipient_name || '').replace(/"/g, '""')}"`,
-        `"${(d.recipient_uid || '').replace(/"/g, '""')}"`,
-        `"${(d.card_types?.name || '').replace(/"/g, '""')}"`,
-        d.quantity,
-        `"${(d.notes || '').replace(/"/g, '""')}"`
-    ]);
+    const headers = ['Date', 'Name', 'UID', 'Card Type', 'Quantity', 'Unit Value', 'Total Value', 'Notes'];
+    const rows = allDistributions.map(d => {
+        const cardValue = Number(d.card_types?.card_value || 0);
+        const totalValue = cardValue * d.quantity;
+        return [
+            d.distributed_at,
+            `"${(d.recipient_name || '').replace(/"/g, '""')}"`,
+            `"${(d.recipient_uid || '').replace(/"/g, '""')}"`,
+            `"${(d.card_types?.name || '').replace(/"/g, '""')}"`,
+            d.quantity,
+            cardValue.toFixed(2),
+            totalValue.toFixed(2),
+            `"${(d.notes || '').replace(/"/g, '""')}"`
+        ];
+    });
 
     const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
 

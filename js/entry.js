@@ -57,6 +57,11 @@ async function loadInventory() {
             return;
         }
 
+        // Calculate totals
+        const totalInitialValue = data.reduce((sum, c) => sum + Number(c.initial_value || 0), 0);
+        const totalDistributedValue = data.reduce((sum, c) => sum + Number(c.distributed_value || 0), 0);
+        const totalRemainingValue = data.reduce((sum, c) => sum + Number(c.remaining_value || 0), 0);
+
         inventoryDiv.innerHTML = data.map(card => {
             let statusClass = '';
             if (card.remaining <= 0) {
@@ -69,10 +74,18 @@ async function loadInventory() {
                 <div class="inventory-card ${statusClass}">
                     <h3>${escapeHtml(card.name)}</h3>
                     <div class="count">${card.remaining}</div>
-                    <div class="details">of ${card.initial_count} remaining</div>
+                    <div class="details">${card.remaining} of ${card.initial_count} @ $${Number(card.card_value).toFixed(2)} each</div>
+                    <div class="value">$${Number(card.remaining_value || 0).toFixed(2)} remaining</div>
                 </div>
             `;
-        }).join('');
+        }).join('') + `
+            <div class="inventory-card total">
+                <h3>TOTAL</h3>
+                <div class="count">$${totalRemainingValue.toFixed(2)}</div>
+                <div class="details">$${totalDistributedValue.toFixed(2)} distributed</div>
+                <div class="value">of $${totalInitialValue.toFixed(2)} initial</div>
+            </div>
+        `;
     } catch (error) {
         document.getElementById('inventory').innerHTML =
             '<p class="error">Error loading inventory</p>';

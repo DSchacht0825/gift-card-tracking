@@ -196,6 +196,32 @@ button.danger:hover {
     color: #f39c12;
 }
 
+.inventory-card .value {
+    font-size: 14px;
+    color: #27ae60;
+    margin-top: 5px;
+    font-weight: 500;
+}
+
+.inventory-card.total {
+    background: #2c3e50;
+    color: white;
+    border: none;
+}
+
+.inventory-card.total h3 {
+    color: white;
+}
+
+.inventory-card.total .count {
+    color: #2ecc71;
+}
+
+.inventory-card.total .details,
+.inventory-card.total .value {
+    color: #bdc3c7;
+}
+
 /* Tables */
 .table-container {
     overflow-x: auto;
