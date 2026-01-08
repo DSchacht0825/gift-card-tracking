@@ -30,6 +30,7 @@ INSERT INTO card_types (name, initial_count) VALUES
     ('Pronto', 100),
     ('7-Eleven', 7),
     ('Grocery Outlet', 15),
+    ('Shell', 21),
     ('Wendy''s', 40);
 
 -- Create a view for inventory summary
